@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title id="titulo">Ping Pong</title>
+  <script src="./p5.min.js"></script>
+  <script src="./p5.sound.js"></script>
+<script>
+    let xBolinha = 300;
+    let yBolinha = 200;
+    let diametro = 15;
+    let velocidadeXBolinha = 1;
+    let velocidadeYBolinha = 1;
+    let raio = diametro / 2;
+
+    let xBolinhaSemRaio;
+    let xBolinhaComRaio;
+    let yBolinhaSemRaio; 
+    let yBolinhaComRaio;
+
+    let xRaquete = 5;
+    let yRaquete = 150;
+
+    let xRaqueteOponente = 585;
+    let yRaqueteOponente = 150;
+    let velocidadeYOponente = 1;
+
+    let raqueteComprimento = 10;
+    let raqueteAltura = 90;
+    
+    let pausarJogo = false;
+    let nivel = 1;
+
+    let somRaquetada;
+    let somVitoria;
+    let somTrilha;
+
+    let tempoEmSegundos;
+    let somAtivo = true;
+    let somEfeitos = true;
+
+    function preload(){
+      somTrilha    = loadSound("./trilha.mp3");
+      somVitoria   = loadSound("./ponto.mp3");
+      somRaquetada = loadSound("./raquetada.mp3");
+    }
+  function collideRectCircle(rx, ry, rw, rh, cx, cy, diameter)
+  {
+   //2d
+  // temporary variables to set edges for testing
+  var testX = cx;
+  var testY = cy;
+
+  // which edge is closest?
+  if (cx < rx){         testX = rx       // left edge
+  }else if (cx > rx+rw){ testX = rx+rw  }   // right edge
+
+  if (cy < ry){         testY = ry       // top edge
+  }else if (cy > ry+rh){ testY = ry+rh }   // bottom edge
+
+  // // get distance from closest edges
+  var distance = this.dist(cx,cy,testX,testY)
+
+  // if the distance is less than the radius, collision!
+  if (distance <= diameter/2) {
+    return true;
+  }
+  return false;
+};
+
+    function setup() {
+      createCanvas(600, 400);
+      somTrilha.loop();
+    }
+
+    function draw() {
+      
+      background(0);
+
+      circle(xBolinha, yBolinha, diametro);
+      
+      mostraRaquete(xRaquete,yRaquete);
+
+      mostraRaquete(xRaqueteOponente,yRaqueteOponente);
+      
+      ativarSom();
+
+      ativarEfeitos();
+
+      if(!pausarJogo){
+        document.getElementById("titulo").innerText = "PING PONG";
+
+        movimentaRaquete();
+        
+        if(document.getElementById("singleplayer").checked){
+           movimentaRaqueteOponentePC();
+        }else{
+          movimentaRaqueteOponenteHumano();
+        }
+
+        verificaColisaoRaquete();
+
+        movimentaBolinha();
+      }else{
+        document.getElementById("titulo").innerText = "JOGO PAUSADO";
+      }
+    }
+
+    function movimentaBolinha() {
+      xBolinha += velocidadeXBolinha*nivel;
+      yBolinha += velocidadeYBolinha*nivel;
+      
+      xBolinhaSemRaio = xBolinha - raio;
+      xBolinhaComRaio = xBolinha + raio;
+      
+      yBolinhaSemRaio = yBolinha - raio;
+      yBolinhaComRaio = yBolinha + raio;
+
+      if (xBolinhaComRaio > width || xBolinhaSemRaio < 0) {
+        velocidadeXBolinha *= -1;
+      }
+      if (yBolinhaComRaio > height || yBolinhaSemRaio < 0) {
+        velocidadeYBolinha *= -1;
+      }
+    }
+
+    function movimentaRaquete() {
+      if (keyIsDown(UP_ARROW)) {
+        yRaquete -= nivel;
+      } else if (keyIsDown(DOWN_ARROW)) {
+        yRaquete += nivel;
+      }
+    }
+
+    function verificaColisaoRaquete() {
+      if (xBolinhaSemRaio < xRaquete + raqueteComprimento
+        && yBolinhaSemRaio < yRaquete + raqueteAltura
+        && yBolinhaComRaio > yRaquete){
+          velocidadeXBolinha *= -1;
+          if(somEfeitos){
+            somRaquetada.play();
+          }
+      }else if(collideRectCircle(xRaqueteOponente,yRaqueteOponente,raqueteComprimento,raqueteAltura,xBolinha,yBolinha,diametro))
+       {
+          velocidadeXBolinha *= -1;
+          if(somEfeitos){
+            somRaquetada.play();
+          }
+      }else if(xBolinhaSemRaio < xRaquete){
+        xBolinha = 300;
+        yBolinha = 200;
+
+        if(document.getElementById("singleplayer").checked){
+          alert("gameOver");
+          nivel = 1;
+        }else if(document.getElementById("multiplayer").checked){
+          if(somEfeitos)
+            somVitoria.play();
+          alert("Jogador 2 Venceu");
+          nivel+=1; 
+          alert("Nivel " + nivel);
+        }
+      }else if(xBolinhaComRaio > xRaqueteOponente + raqueteComprimento){
+        if(somEfeitos)
+          somVitoria.play();
+        alert("Jogador 1 Venceu");
+        nivel+=1;
+        alert("Nivel " + nivel);
+        xBolinha = 300;
+        yBolinha = 200;
+      }
+    }
+    
+    function mostraRaquete(valorX,valorY){
+      
+      rect(valorX, valorY, raqueteComprimento, raqueteAltura);
+
+    }
+
+    function movimentaRaqueteOponentePC(){
+      if((yBolinhaSemRaio > yRaqueteOponente + raqueteAltura && velocidadeYOponente < 0
+        ||
+        yBolinhaComRaio < yRaqueteOponente && velocidadeYOponente > 0
+      )
+      ){
+          velocidadeYOponente*= -1;
+      }
+      if(xBolinha > 300 - nivel * 10)
+        yRaqueteOponente+=velocidadeYOponente*nivel;
+
+    }
+
+    function movimentaRaqueteOponenteHumano() {
+      if (keyIsDown(87)) {
+        yRaqueteOponente -= nivel;
+      } else if (keyIsDown(83)) {
+        yRaqueteOponente += nivel;
+      }
+    }
+
+    function keyPressed(){
+      if(key === ' '){
+        if(pausarJogo){
+          pausarJogo = false;
+        }else{
+          pausarJogo = true;
+        }
+    }
+
+  }
+    function ativarEfeitos(){
+      somEfeitos = document.getElementById("efeitoOn").checked;
+    };
+
+    function ativarSom(){
+      if(document.getElementById("somOff").checked && somAtivo){
+        somTrilha.pause();
+        somAtivo = false;
+      }else if(document.getElementById("somOn").checked && !somAtivo){
+        somTrilha.loop();
+        somAtivo = true;
+      };
+    }
+
+  </script>
+</head>
+
+<body>
+  <div>
+  <canvas id="defaultCanvas"></canvas>
+  </div>
+  <div>
+  <label>MODO JOGO:</label>
+    <input type="radio" id="singleplayer" name="opcoes" checked="true">SINGLEPLAYER</input>
+  
+  <input type="radio" id="multiplayer" name="opcoes">MULTIPLAYER</input>
+  </div>
+  <div>
+  <label>SOM:</label>
+  <input type="radio" id="somOn" name="som" checked="true">ON</input>
+  
+  <input type="radio" id="somOff" name="som">OFF</input>
+
+ </div>
+
+ <div>
+  <label>EFEITOS:</label>
+  <input type="radio" id="efeitoOn" name="efeito" checked="true">ON</input>
+  
+  <input type="radio" id="efeitoOff" name="efeito">OFF</input>
+
+ </div>
+</body>
+
+</html>
