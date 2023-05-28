@@ -154,11 +154,10 @@
 
     function escolheuCelular() {
       document.getElementById("somOff").checked = true;
-      document.getElementById("divControlar").style.display = "block";
-      comecarJogo = true;
       document.getElementById("divDificuldade").style.display = "none";
       document.getElementById("divDispositivo").style.display = "none";
       document.getElementById("divCabecalho").style.display = "none";
+      document.getElementById("divControlar").style.display = "block";
     }
 
 
@@ -280,38 +279,25 @@
     window.onload = function () {
       let botaoComecar = document.getElementById("botaoComecar");
 
-      let botaoSubir = document.getElementById("sobe");
+      let botaoDirecao = document.getElementById("direcao");
 
-      let botaoDescer = document.getElementById("desce");
-
-      let botaoParado = document.getElementById("parado");
-
-      let botaoPausar = document.getElementById("btnPausar");
 
       botaoComecar.onclick = function () {
         comecarJogo = true;
         dificuldade.style.display = "none";
       }
 
-      botaoSubir.onclick = function () {
-        botaoDescerAtivo = false;
-        botaoSubirAtivo = true;
-      }
+      botaoDirecao.onclick = function () {
+        comecarJogo = true;
+        if(botaoSubirAtivo){
+          botaoSubirAtivo = false;
+          botaoDescerAtivo = true;
+        }else{
+          botaoSubirAtivo = true;
+          botaoDescerAtivo = false;
+        }
 
-      botaoDescer.onclick = function () {
-        botaoSubirAtivo = false;
-        botaoDescerAtivo = true;
       }
-
-      botaoParado.onclick = function () {
-        botaoSubirAtivo = false;
-        botaoDescerAtivo = false;
-      }
-
-      botaoPausar.onclick = function(){
-         pausarJogo = !pausarJogo;
-      }
-
 
     }
   </script>
@@ -347,7 +333,7 @@
     <div>
     </div>
     <div>
-      <button id="botaoComecar">COMECAR</button>
+      <button id="botaoComecar">COMECAR JOGO</button>
     </div>
     <br>
 
@@ -369,14 +355,7 @@
 
   </div>
   <div id="divControlar" style="display:none;">
-    <label>CONTROLAR:</label>
-    <button id="sobe" style="width:200px;height:200px">SOBE</button>
-
-    <button id="parado" style="width:200px;height:200px">PARADO</button>
-
-    <button id="desce" style="width:200px;height:200px">DESCE</button>
-
-    <button id="btnPausar" style="width:200px;height:200px">PAUSAR JOGO</button>
+    <button id="direcao" style="width:200px;height:200px">SOBE/DESCE</button>
 
     <canvas id="defaultCanvas" style="margin-top: -1000px;"></canvas>
   </div>
