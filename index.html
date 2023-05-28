@@ -49,7 +49,8 @@
       somTrilha = loadSound("./trilha.mp3");
       somVitoria = loadSound("./ponto.mp3");
       somRaquetada = loadSound("./raquetada.mp3");
-    }
+    };
+
     function collideRectCircle(rx, ry, rw, rh, cx, cy, diameter) {
       //2d
       // temporary variables to set edges for testing
@@ -79,11 +80,9 @@
       createCanvas(600, 400);
       somTrilha.loop();
       sorteio = gerarNumeroAleatorio(1, 4);
-    }
+    };
 
     function draw() {
-
-
       background(0);
 
       circle(xBolinha, yBolinha, diametro);
@@ -99,9 +98,12 @@
 
       ativarEfeitos();
 
+      document.getElementById("lblDificuldade").innerText = document.getElementById("rangeDificuldade").value;
+
+      expertAtivo();
+
       if (!pausarJogo && comecarJogo) {
         document.getElementById("titulo").innerText = "PING PONG";
-
 
         movimentaRaquete();
 
@@ -110,20 +112,21 @@
         } else {
           movimentaRaqueteOponenteHumano();
         }
-
         verificaColisaoRaquete();
 
         movimentaBolinha();
+
       } else if (!comecarJogo) {
         document.getElementById("titulo").innerText = "PING PONG";
       } else {
         document.getElementById("titulo").innerText = "JOGO PAUSADO";
       }
-    }
+    };
 
     function gerarNumeroAleatorio(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
+    };
+
     function movimentaBolinha() {
       if (sorteio === 1) {
         xBolinha += velocidadeXBolinha * nivel;
@@ -150,15 +153,17 @@
       if (yBolinhaComRaio > height || yBolinhaSemRaio < 0) {
         velocidadeYBolinha *= -1;
       }
-    }
+    };
 
     function escolheuCelular() {
       document.getElementById("somOff").checked = true;
       document.getElementById("divDificuldade").style.display = "none";
-      document.getElementById("divDispositivo").style.display = "none";
+      document.getElementById("divOpcoes").style.display = "none";
       document.getElementById("divCabecalho").style.display = "none";
       document.getElementById("divControlar").style.display = "block";
-    }
+      document.getElementById("lklGithub").style.display = "none";
+      document.getElementById("lblGithub").style.display = "none";
+    };
 
 
     function movimentaRaquete() {
@@ -167,9 +172,7 @@
       } else if ((keyIsDown(DOWN_ARROW) || botaoDescerAtivo) && yRaquete + raqueteAltura < 400) {
         yRaquete += nivel;
       }
-    }
-
-
+    };
 
     function verificaColisaoRaquete() {
       if (xBolinhaSemRaio < xRaquete + raqueteComprimento
@@ -210,13 +213,11 @@
         yBolinha = 200;
         sorteio = gerarNumeroAleatorio(1, 4);
       }
-    }
+    };
 
     function mostraRaquete(valorX, valorY) {
-
       rect(valorX, valorY, raqueteComprimento, raqueteAltura);
-
-    }
+    };
 
     function movimentaRaqueteOponentePC() {
       if ((yBolinhaSemRaio > yRaqueteOponente + raqueteAltura && velocidadeYOponente < 0
@@ -226,15 +227,23 @@
       ) {
         velocidadeYOponente *= -1;
       }
-      if (xBolinha > nivelDificuldade() - nivel * 10
+      if (xBolinha > ((600 - document.getElementById("rangeDificuldade").value * 50))
         && (
           (yRaqueteOponente > 0 || velocidadeYOponente > 0)
           && (yRaqueteOponente + raqueteAltura < 400 || velocidadeYOponente < 0)
         )
         && (xBolinha < 580)
       )
-        yRaqueteOponente += velocidadeYOponente * nivel;
+        yRaqueteOponente += velocidadeYOponente * (nivel + expertAtivo());
+    };
 
+    function expertAtivo() {
+      if (document.getElementById("chcExpert").checked) {
+        document.getElementById("rangeDificuldade").value = 12;
+        return 1;
+      } else {
+        return 0;
+      }
     }
 
     function movimentaRaqueteOponenteHumano() {
@@ -243,14 +252,14 @@
       } else if (keyIsDown(83) && yRaqueteOponente + raqueteAltura < 400) {
         yRaqueteOponente += nivel;
       }
-    }
+    };
 
     function keyPressed() {
       if (key === ' ') {
         pausarJogo = !pausarJogo;
       }
+    };
 
-    }
     function ativarEfeitos() {
       somEfeitos = document.getElementById("efeitoOn").checked;
     };
@@ -263,43 +272,31 @@
         somTrilha.loop();
         somAtivo = true;
       };
-    }
+    };
 
-    function nivelDificuldade() {
-      if (document.getElementById("facil").checked)
-        return 300;
-      else if (document.getElementById("media").checked)
-        return 250;
-      else if (document.getElementById("dificil"))
-        return 130;
-      else if (document.getElementById("expert"))
-        return 0;
-    }
 
     window.onload = function () {
       let botaoComecar = document.getElementById("botaoComecar");
 
-      let botaoDirecao = document.getElementById("direcao");
-
+      let botaoDirecao = document.getElementById("btnDirecao");
 
       botaoComecar.onclick = function () {
         comecarJogo = true;
-        dificuldade.style.display = "none";
       }
 
       botaoDirecao.onclick = function () {
         comecarJogo = true;
-        if(botaoSubirAtivo){
+        if (botaoSubirAtivo) {
           botaoSubirAtivo = false;
           botaoDescerAtivo = true;
-        }else{
+        } else {
           botaoSubirAtivo = true;
           botaoDescerAtivo = false;
         }
 
       }
+    };
 
-    }
   </script>
 </head>
 
@@ -311,24 +308,28 @@
 
     <div>
       <label>MODO JOGO:</label>
+
       <input type="radio" id="singleplayer" name="opcoes" checked="true">SINGLEPLAYER</input>
 
       <input type="radio" id="multiplayer" name="opcoes"><label id="lblMultiplayer">MULTIPLAYER</label>
     </div>
+
     <div>
       <label>SOM:</label>
+
       <input type="radio" id="somOn" name="som" checked="true">ON</input>
 
       <input type="radio" id="somOff" name="som">OFF</input>
-
     </div>
 
     <div>
       <label>EFEITOS:</label>
+
       <input type="radio" id="efeitoOn" name="efeito" checked="true">ON</input>
 
       <input type="radio" id="efeitoOff" name="efeito">OFF</input>
     </div>
+
     <br>
     <div>
     </div>
@@ -336,29 +337,40 @@
       <button id="botaoComecar">COMECAR JOGO</button>
     </div>
     <br>
-
   </div>
 
-  <div id="divDispositivo">
-    <label>DISPOSITIVO:</label>
-    <input type="radio" id="computador" name="dispositivo" checked="true">COMPUTADOR</input>
+  <div id="divOpcoes" style="margin-top:-100px;">
+    <div>
+      <label>DISPOSITIVO:</label>
 
-    <input type="radio" id="celular" name="dispositivo">CELULAR</input>
+      <input type="radio" id="computador" name="dispositivo" checked="true">COMPUTADOR</input>
+
+      <input type="radio" id="celular" name="dispositivo">CELULAR</input>
+    </div>
+    <div id="divDificuldade">
+      <label>DIFICULDADE:</label>
+      <input type="range" id="rangeDificuldade" min="0" max="12" step="1">
+      <label id="lblDificuldade"></label>
+      <input type="checkbox" id="chcExpert">EXPERT</input>
+    </div>
   </div>
-  <div id="divDificuldade">
-    <label>DIFICULDADE:</label>
-    <input type="radio" id="facil" name="nivel" checked="true">FACIL</input>
+</body>
 
-    <input type="radio" id="media" name="nivel">MEDIA</input>
+</html>
 
-    <input type="radio" id="dificil" name="nivel">DIFICIL</input>
+</div>
+</div>
 
-  </div>
-  <div id="divControlar" style="display:none;">
-    <button id="direcao" style="width:200px;height:200px">SOBE/DESCE</button>
+<div id="divControlar" style="display:none" style="margin-top:-80px;">
 
-    <canvas id="defaultCanvas" style="margin-top: -1000px;"></canvas>
-  </div>
+  <button id="btnDirecao" style="width:200px;height:200px;">SOBE/DESCE</button>
+
+  <canvas id="defaultCanvas"></canvas>
+
+</div>
+
+<label id="lblGithub">Link: </label><a id="lklGithub"
+  href="https://github.com/daniellribeiro/JogoPingPong">https://github.com/daniellribeiro/JogoPingPong</a>
 </body>
 
 </html>
