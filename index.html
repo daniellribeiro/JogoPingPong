@@ -83,6 +83,8 @@
     };
 
     function draw() {
+      pausarJogo ? document.getElementById("hPausado").style.display = "block" : document.getElementById("hPausado").style.display = "none";
+
       background(0);
 
       circle(xBolinha, yBolinha, diametro);
@@ -103,7 +105,6 @@
       expertAtivo();
 
       if (!pausarJogo && comecarJogo) {
-        document.getElementById("titulo").innerText = "PING PONG";
 
         movimentaRaquete();
 
@@ -116,10 +117,6 @@
 
         movimentaBolinha();
 
-      } else if (!comecarJogo) {
-        document.getElementById("titulo").innerText = "PING PONG";
-      } else {
-        document.getElementById("titulo").innerText = "JOGO PAUSADO";
       }
     };
 
@@ -304,6 +301,7 @@
   <div id="divCabecalho" style="text-align: right">
     <div>
       <h1>JOGO PING PONG</h1>
+      <h1 id="hPausado" style="color:red;display:none">JOGO PAUSADO</h1>
     </div>
 
     <div>
