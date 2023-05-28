@@ -32,6 +32,7 @@
     let pausarJogo = false;
     let nivel = 1;
     let comecarJogo = false;
+    let sorteio;
 
     let somRaquetada;
     let somVitoria;
@@ -40,6 +41,9 @@
     let tempoEmSegundos;
     let somAtivo = true;
     let somEfeitos = true;
+
+    let botaoSubirAtivo = false;
+    let botaoDescerAtivo = false;
 
     function preload() {
       somTrilha = loadSound("./trilha.mp3");
@@ -74,15 +78,16 @@
     function setup() {
       createCanvas(600, 400);
       somTrilha.loop();
+      sorteio = gerarNumeroAleatorio(1, 4);
     }
 
     function draw() {
-      
+
 
       background(0);
 
       circle(xBolinha, yBolinha, diametro);
-       
+
       if (document.getElementById("celular").checked)
         escolheuCelular();
 
@@ -97,8 +102,8 @@
       if (!pausarJogo && comecarJogo) {
         document.getElementById("titulo").innerText = "PING PONG";
 
-        
-      movimentaRaquete();
+
+        movimentaRaquete();
 
         if (document.getElementById("singleplayer").checked) {
           movimentaRaqueteOponentePC();
@@ -109,15 +114,30 @@
         verificaColisaoRaquete();
 
         movimentaBolinha();
+      } else if (!comecarJogo) {
+        document.getElementById("titulo").innerText = "PING PONG";
       } else {
         document.getElementById("titulo").innerText = "JOGO PAUSADO";
       }
     }
 
+    function gerarNumeroAleatorio(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
     function movimentaBolinha() {
-      xBolinha += velocidadeXBolinha * nivel;
-      yBolinha += velocidadeYBolinha * nivel;
-
+      if (sorteio === 1) {
+        xBolinha += velocidadeXBolinha * nivel;
+        yBolinha += velocidadeYBolinha * nivel;
+      } else if (sorteio === 2) {
+        xBolinha -= velocidadeXBolinha * nivel;
+        yBolinha -= velocidadeYBolinha * nivel;
+      } else if (sorteio === 3) {
+        xBolinha += velocidadeXBolinha * nivel;
+        yBolinha -= velocidadeYBolinha * nivel;
+      } else if (sorteio === 4) {
+        xBolinha -= velocidadeXBolinha * nivel;
+        yBolinha += velocidadeYBolinha * nivel;
+      }
       xBolinhaSemRaio = xBolinha - raio;
       xBolinhaComRaio = xBolinha + raio;
 
@@ -133,24 +153,22 @@
     }
 
     function escolheuCelular() {
-      document.getElementById("singleplayer").checked = true;
-      document.getElementById("multiplayer").style.display = "none";
-      document.getElementById("lblMultiplayer").style.display = "none";
-      document.getElementById("efeitoOn").style.display = "none";
-      document.getElementById("efeitoOff").style.display = "none";
-      document.getElementById("somOn").style.display = "none";
       document.getElementById("somOff").checked = true;
-      document.getElementById("somOff").style.display = "none";
-
+      document.getElementById("divControlar").style.display = "block";
+      comecarJogo = true;
+      document.getElementById("divDificuldade").style.display = "none";
+      document.getElementById("divDispositivo").style.display = "none";
+      document.getElementById("divCabecalho").style.display = "none";
     }
 
-      function movimentaRaquete() {
-        if (keyIsDown(UP_ARROW) || document.getElementById("sobe").checked) {
-          yRaquete -= nivel;
-        } else if (keyIsDown(DOWN_ARROW) || document.getElementById("desce").checked) {
-          yRaquete += nivel;
-        }
+
+    function movimentaRaquete() {
+      if ((keyIsDown(UP_ARROW) || botaoSubirAtivo) && yRaquete > 0) {
+        yRaquete -= nivel;
+      } else if ((keyIsDown(DOWN_ARROW) || botaoDescerAtivo) && yRaquete + raqueteAltura < 400) {
+        yRaquete += nivel;
       }
+    }
 
 
 
@@ -174,12 +192,14 @@
         if (document.getElementById("singleplayer").checked) {
           alert("gameOver");
           nivel = 1;
+          sorteio = gerarNumeroAleatorio(1, 4);
         } else if (document.getElementById("multiplayer").checked) {
           if (somEfeitos)
             somVitoria.play();
           alert("Jogador 2 Venceu");
           nivel += 1;
           alert("Nivel " + nivel);
+          sorteio = gerarNumeroAleatorio(1, 4);
         }
       } else if (xBolinhaComRaio > xRaqueteOponente + raqueteComprimento) {
         if (somEfeitos)
@@ -189,6 +209,7 @@
         alert("Nivel " + nivel);
         xBolinha = 300;
         yBolinha = 200;
+        sorteio = gerarNumeroAleatorio(1, 4);
       }
     }
 
@@ -206,26 +227,28 @@
       ) {
         velocidadeYOponente *= -1;
       }
-      if (xBolinha > 300 - nivel * 10)
+      if (xBolinha > nivelDificuldade() - nivel * 10
+        && (
+          (yRaqueteOponente > 0 || velocidadeYOponente > 0)
+          && (yRaqueteOponente + raqueteAltura < 400 || velocidadeYOponente < 0)
+        )
+        && (xBolinha < 580)
+      )
         yRaqueteOponente += velocidadeYOponente * nivel;
 
     }
 
     function movimentaRaqueteOponenteHumano() {
-      if (keyIsDown(87)) {
+      if (keyIsDown(87) && yRaqueteOponente > 0) {
         yRaqueteOponente -= nivel;
-      } else if (keyIsDown(83)) {
+      } else if (keyIsDown(83) && yRaqueteOponente + raqueteAltura < 400) {
         yRaqueteOponente += nivel;
       }
     }
 
     function keyPressed() {
       if (key === ' ') {
-        if (pausarJogo) {
-          pausarJogo = false;
-        } else {
-          pausarJogo = true;
-        }
+        pausarJogo = !pausarJogo;
       }
 
     }
@@ -243,29 +266,63 @@
       };
     }
 
+    function nivelDificuldade() {
+      if (document.getElementById("facil").checked)
+        return 300;
+      else if (document.getElementById("media").checked)
+        return 250;
+      else if (document.getElementById("dificil"))
+        return 130;
+      else if (document.getElementById("expert"))
+        return 0;
+    }
 
     window.onload = function () {
       let botaoComecar = document.getElementById("botaoComecar");
 
+      let botaoSubir = document.getElementById("sobe");
+
+      let botaoDescer = document.getElementById("desce");
+
+      let botaoParado = document.getElementById("parado");
+
+      let botaoPausar = document.getElementById("btnPausar");
+
       botaoComecar.onclick = function () {
         comecarJogo = true;
+        dificuldade.style.display = "none";
       }
+
+      botaoSubir.onclick = function () {
+        botaoDescerAtivo = false;
+        botaoSubirAtivo = true;
+      }
+
+      botaoDescer.onclick = function () {
+        botaoSubirAtivo = false;
+        botaoDescerAtivo = true;
+      }
+
+      botaoParado.onclick = function () {
+        botaoSubirAtivo = false;
+        botaoDescerAtivo = false;
+      }
+
+      botaoPausar.onclick = function(){
+         pausarJogo = !pausarJogo;
+      }
+
 
     }
   </script>
 </head>
 
 <body>
-  <div id="cabecalho" style="text-align: right">
+  <div id="divCabecalho" style="text-align: right">
     <div>
       <h1>JOGO PING PONG</h1>
     </div>
-    <div>
-      <label>DISPOSITIVO:</label>
-      <input type="radio" id="computador" name="dispositivo" checked="true">COMPUTADOR</input>
 
-      <input type="radio" id="celular" name="dispositivo">CELULAR</input>
-    </div>
     <div>
       <label>MODO JOGO:</label>
       <input type="radio" id="singleplayer" name="opcoes" checked="true">SINGLEPLAYER</input>
@@ -288,22 +345,40 @@
     </div>
     <br>
     <div>
+    </div>
+    <div>
       <button id="botaoComecar">COMECAR</button>
     </div>
     <br>
-    
+
   </div>
 
+  <div id="divDispositivo">
+    <label>DISPOSITIVO:</label>
+    <input type="radio" id="computador" name="dispositivo" checked="true">COMPUTADOR</input>
 
-  <div>
+    <input type="radio" id="celular" name="dispositivo">CELULAR</input>
+  </div>
+  <div id="divDificuldade">
+    <label>DIFICULDADE:</label>
+    <input type="radio" id="facil" name="nivel" checked="true">FACIL</input>
+
+    <input type="radio" id="media" name="nivel">MEDIA</input>
+
+    <input type="radio" id="dificil" name="nivel">DIFICIL</input>
+
+  </div>
+  <div id="divControlar" style="display:none;">
     <label>CONTROLAR:</label>
-    <input type="radio" id="sobe" name="controlar">SOBE</input>
+    <button id="sobe" style="width:200px;height:200px">SOBE</button>
 
-    <input type="radio" id="parado" name="controlar" checked="true">PARADO</input>
+    <button id="parado" style="width:200px;height:200px">PARADO</button>
 
-    <input type="radio" id="desce" name="controlar">DESCE</input>
+    <button id="desce" style="width:200px;height:200px">DESCE</button>
 
-  <canvas id="defaultCanvas" style="margin-top: -1000px;"></canvas>
+    <button id="btnPausar" style="width:200px;height:200px">PAUSAR JOGO</button>
+
+    <canvas id="defaultCanvas" style="margin-top: -1000px;"></canvas>
   </div>
 </body>
 
